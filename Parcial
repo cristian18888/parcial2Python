@@ -1,0 +1,324 @@
+#Cristian Rodriguez - 02240132026
+
+listaUsuarios = [
+    ("U001", "Ana Pérez", "3001112222", "Analista", [
+        {"codigo": "T100", "titulo": "Brief cliente", "estado": "pendiente", "descripcion": "Reunión inicial", "prioridad": "alta"},
+        {"codigo": "T101", "titulo": "Documento alcance", "estado": "completada", "descripcion": "Alcance v1", "prioridad": "media"}
+    ]),
+    ("U002", "Luis Gómez", "3003334444", "Dev", [
+        {"codigo": "T102", "titulo": "API login", "estado": "pendiente", "descripcion": "Endpoint y test", "prioridad": "alta"}
+    ]),
+    ("U003", "María López", "3005556666", "PM", [])
+]
+
+def buscarIndiceUsuario(idUsuario):
+    indice = 0
+    hallado = -1
+    for u in listaUsuarios:
+        if u[0] == idUsuario:
+            hallado = indice
+            break
+        indice = indice + 1
+    return hallado
+
+def obtenerListaCodigosTareas(listaTareas):
+    codigos = []
+    for t in listaTareas:
+        codigos.append(t["codigo"])
+    return codigos
+
+def imprimirListaDesdeResultado(resultado):
+    if resultado["estado"] == "ok":
+        if resultado["datos"] == []:
+            print(resultado["mensaje"])
+        else:
+            print(resultado["mensaje"])
+            k = 0
+            for fila in resultado["datos"]:
+                print(str(k) + ": " + str(fila))
+                k = k + 1
+    else:
+        print(resultado["mensaje"])
+
+
+def entrada():
+    print("Sistema del control de tareas de usuarios ")
+    print("Seleccione una opción:")
+    print("1. menú usuario")
+    print("2. menú tareas")
+    print("3. reportes")
+    print("0. salir")
+    opcion = input("Ingrese el número de opción: ").strip()
+    return opcion
+
+def proceso(entrada):
+   match entrada:
+        case "1":
+            return menuUsuario()
+        case "2":
+            return menuTareas()
+        case "3":
+            return menuReportes()
+        case "0":
+            return {"estado": "ok", "mensaje": "salir", "datos": []}
+        case _:
+            return {"estado": "error", "mensaje": "Opción no válida", "datos": []}
+
+def salida(resultado):
+    if resultado["mensaje"] == "salir":
+        print("Programa finalizado.")
+        return False
+    imprimirListaDesdeResultado(resultado)
+    return True
+    
+def menuUsuario():
+    print("Menú usuario")
+    print("1. Listar usuarios")
+    print("2. Buscar usuario por ID")
+    print("3. Crear nuevo usuario")
+    print("4. eliminar usuario por ID")
+    print("5. Actualizar información de usuario")
+    print("6. Volver al menú principal")
+    opcion = input("Ingrese el número de opción: ").strip()
+
+    match opcion:
+        case "1":
+            return listarUsuarios()
+        case "2":
+            return buscarUsuarioPorID()
+        case "3":
+            return crearNuevoUsuario()
+        case "4":
+            return eliminarUsuarioPorID()
+        case "5":
+            return actualizarInformacionUsuario()
+        case "6":
+            return {"estado": "ok", "mensaje": "Volviendo al menú principal", "datos": []}
+        case _:
+            return {"estado": "error", "mensaje": "Opción no válida", "datos": []}
+
+
+def listarUsuarios():
+    datos = []
+    for u in listaUsuarios:
+        datos.append({
+            "id": u[0],
+            "nombre": u[1],
+            "telefono": u[2],
+            "rol": u[3],
+            "tareas": obtenerListaCodigosTareas(u[4])
+        })
+
+    return {"estado": "ok", "mensaje": "Lista de usuarios:", "datos": datos}
+
+def buscarUsuarioPorID():
+    idUsuario = input("Ingrese el ID del usuario a buscar: ").strip()
+    indice = buscarIndiceUsuario(idUsuario)
+    if indice != -1:
+        u = listaUsuarios[indice]
+        datos = {
+            "id": u[0],
+            "nombre": u[1],
+            "telefono": u[2],
+            "rol": u[3],
+            "tareas": obtenerListaCodigosTareas(u[4])
+        }
+        return {"estado": "ok", "mensaje": "Usuario encontrado:", "datos": [datos]}
+    else:
+        return {"estado": "error", "mensaje": "Usuario no encontrado", "datos": []}
+    
+def crearNuevoUsuario():
+    idUsuario = input("Ingrese el ID del nuevo usuario: ").strip()
+    indice = buscarIndiceUsuario(idUsuario)
+    if indice == -1:
+        nombre = input("Ingrese el nombre del usuario: ").strip()
+        telefono = input("Ingrese el teléfono del usuario: ").strip()
+        rol = input("Ingrese el rol del usuario: ").strip()
+        listaUsuarios.append((idUsuario, nombre, telefono, rol, []))
+        return {"estado": "ok", "mensaje": "Usuario creado exitosamente", "datos": []}
+    else:
+        return {"estado": "error", "mensaje": "El ID del usuario ya existe", "datos": []}
+    
+def eliminarUsuarioPorID():
+    idUsuario = input("Ingrese el ID del usuario a eliminar: ").strip()
+    indice = buscarIndiceUsuario(idUsuario)
+    if indice != -1:
+        listaUsuarios.pop(indice)
+        return {"estado": "ok", "mensaje": "Usuario eliminado exitosamente", "datos": []}
+    else:
+        return {"estado": "error", "mensaje": "Usuario no encontrado", "datos": []}
+    
+def actualizarInformacionUsuario():
+    idUsuario = input("Ingrese el ID del usuario a actualizar: ").strip()
+    indice = buscarIndiceUsuario(idUsuario)
+    if indice != -1:
+        nombre = input("Ingrese el nuevo nombre del usuario: ").strip()
+        telefono = input("Ingrese el nuevo teléfono del usuario: ").strip()
+        rol = input("Ingrese el nuevo rol del usuario: ").strip()
+        u = listaUsuarios[indice]
+        listaUsuarios[indice] = (u[0], nombre, telefono, rol, u[4])
+        return {"estado": "ok", "mensaje": "Información del usuario actualizada exitosamente", "datos": []}
+    else:
+        return {"estado": "error", "mensaje": "Usuario no encontrado", "datos": []}
+    
+def menuTareas():
+    print("Menú tareas")
+    print("1. Listar tareas de un usuario")
+    print("2. Agregar tarea a un usuario")
+    print("3. Actualizar estado de una tarea")
+    print("4. Eliminar tarea de un usuario")
+    print("5. Volver al menú principal")
+    opcion = input("Ingrese el número de opción: ").strip()
+
+    match opcion:
+        case "1":
+            return listarTareasDeUsuario()
+        case "2":
+            return agregarTareaAUsuario()
+        case "3":
+            return actualizarEstadoDeTarea()
+        case "4":
+            return eliminarTareaDeUsuario()
+        case "5":
+            return {"estado": "ok", "mensaje": "Volviendo al menú principal", "datos": []}
+        case _:
+            return {"estado": "error", "mensaje": "Opción no válida", "datos": []}
+    
+def listarTareasDeUsuario():
+    idUsuario = input("Ingrese el ID del usuario cuyas tareas desea listar: ").strip()
+    indice = buscarIndiceUsuario(idUsuario)
+    if indice == -1:
+        return {"estado": "error", "mensaje": "Usuario no encontrado", "datos": []}
+    
+    estadoFiltro = input("¿Desea filtrar por estado? (pendiente/completada/todo): ").strip().lower()
+    tareas = listaUsuarios[indice][4]
+    if estadoFiltro in ["pendiente", "completada"]:
+        tareas = [t for t in tareas if t["estado"] == estadoFiltro]
+    
+    if not tareas:
+        return {"estado": "ok", "mensaje": "No hay tareas para el filtro aplicado", "datos": []}
+    return {"estado": "ok", "mensaje": "Tareas del usuario " + idUsuario + ":", "datos": tareas}
+    
+
+def agregarTareaAUsuario():
+    idUsuario = input("Ingrese el ID del usuario al que desea agregar una tarea: ").strip()
+    indice = buscarIndiceUsuario(idUsuario)
+    if indice != -1:
+        codigo = input("Ingrese el código de la tarea: ").strip()
+        listaT = listaUsuarios[indice][4]
+        
+        codigos = obtenerListaCodigosTareas(listaT)
+        existe = False
+        for c in codigos:
+            if c == codigo:
+                existe = True
+                break
+        if existe:
+            return {"estado": "error", "mensaje": "Ya existe una tarea con ese código para este usuario", "datos": []}
+
+        titulo = input("Ingrese el título de la tarea: ").strip()
+        estado = input("Ingrese el estado de la tarea (pendiente/completada): ").strip()
+        descripcion = input("Ingrese la descripción de la tarea: ").strip()
+        prioridad = input("Ingrese la prioridad de la tarea (alta/media/baja): ").strip()
+        nuevaTarea = {
+            "codigo": codigo,
+            "titulo": titulo,
+            "estado": estado,
+            "descripcion": descripcion,
+            "prioridad": prioridad
+        }
+        listaT.append(nuevaTarea)
+        return {"estado": "ok", "mensaje": "Tarea agregada exitosamente", "datos": []}
+    else:
+        return {"estado": "error", "mensaje": "Usuario no encontrado", "datos": []}
+    
+def actualizarEstadoDeTarea():
+    idUsuario = input("Ingrese el ID del usuario cuya tarea desea actualizar: ").strip()
+    indice = buscarIndiceUsuario(idUsuario)
+    if indice != -1:
+        codigoTarea = input("Ingrese el código de la tarea a actualizar: ").strip()
+        tareas = listaUsuarios[indice][4]
+        for t in tareas:
+            if t["codigo"] == codigoTarea:
+                nuevoEstado = input("Ingrese el nuevo estado de la tarea (pendiente/completada): ").strip()
+                t["estado"] = nuevoEstado
+                return {"estado": "ok", "mensaje": "Estado de la tarea actualizado exitosamente", "datos": []}
+        return {"estado": "error", "mensaje": "Tarea no encontrada", "datos": []}
+    else:
+        return {"estado": "error", "mensaje": "Usuario no encontrado", "datos": []}
+    
+def eliminarTareaDeUsuario():
+    idUsuario = input("Ingrese el ID del usuario cuya tarea desea eliminar: ").strip()
+    indice = buscarIndiceUsuario(idUsuario)
+    if indice == -1:
+        return {"estado": "error", "mensaje": "Usuario no encontrado", "datos": []}
+    codigoTarea = input("Ingrese el código de la tarea a eliminar: ").strip()
+    tareas = listaUsuarios[indice][4]
+    pos = -1
+    i = 0
+    for t in tareas:
+        if t["codigo"] == codigoTarea:
+            pos = i
+            break
+        i = i + 1
+    if pos == -1:
+        return {"estado": "error", "mensaje": "Tarea no encontrada", "datos": []}
+    eliminado = tareas.pop(pos)
+    return {"estado": "ok", "mensaje": "Tarea eliminada exitosamente: " + eliminado["codigo"], "datos": []}
+    
+def menuReportes():
+    print("Menú reportes")
+    print("1. Reporte de tareas por usuario")
+    print("2. Reporte de tareas por estado")
+    print("3. Volver al menú principal")
+    opcion = input("Ingrese el número de opción: ").strip()
+
+    match opcion:
+        case "1":
+            return reporteTareasPorUsuario()
+        case "2":
+            return reporteTareasPorEstado()
+        case "3":
+            return {"estado": "ok", "mensaje": "Volviendo al menú principal", "datos": []}
+        case _:
+            return {"estado": "error", "mensaje": "Opción no válida", "datos": []}
+
+    
+def reporteTareasPorUsuario():
+    datos = []
+    for u in listaUsuarios:
+        tareasPendientes = 0
+        tareasCompletadas = 0
+        for t in u[4]:
+            if t["estado"] == "pendiente":
+                tareasPendientes = tareasPendientes + 1
+            elif t["estado"] == "completada":
+                tareasCompletadas = tareasCompletadas + 1
+        datos.append({
+            "id_usuario": u[0],
+            "nombre_usuario": u[1],
+            "tareas_pendientes": tareasPendientes,
+            "tareas_completadas": tareasCompletadas
+        })
+    return {"estado": "ok", "mensaje": "Reporte de tareas por usuario:", "datos": datos}
+
+def reporteTareasPorEstado():
+    estadoTareas = {"pendiente": 0, "completada": 0}
+    for u in listaUsuarios:
+        for t in u[4]:
+            if t["estado"] in estadoTareas:
+                estadoTareas[t["estado"]] = estadoTareas[t["estado"]] + 1
+    datos = [
+        {"estado": "pendiente", "cantidad": estadoTareas["pendiente"]},
+        {"estado": "completada", "cantidad": estadoTareas["completada"]}
+    ]
+    return {"estado": "ok", "mensaje": "Reporte de tareas por estado:", "datos": datos}
+
+
+
+#------- MAIN -------------
+while True:
+    opcionElegida = entrada()
+    resultado = proceso(opcionElegida)
+    if not salida(resultado):
+        break
